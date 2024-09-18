@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pl.piomin.base.domain.Order;
 import pl.piomin.stock.domain.Product;
 import pl.piomin.stock.repository.ProductRepository;
@@ -20,7 +21,6 @@ public class OrderManageService {
         this.repository = repository;
         this.template = template;
     }
-
     public void reserve(Order order) {
         Product product = repository.findById(order.getProductId()).orElseThrow();
         LOG.info("Found: {}", product);
@@ -33,6 +33,7 @@ public class OrderManageService {
             } else {
                 order.setStatus("REJECT");
             }
+            order.setSource(SOURCE);
             template.send("stock-orders", order.getId(), order);
             LOG.info("Sent: {}", order);
         }
